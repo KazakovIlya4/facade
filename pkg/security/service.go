@@ -4,6 +4,7 @@ import "fmt"
 
 const (
 	securityCodeExampleValid int = 123
+	transactionIDExample     int = 1234
 )
 
 // Checker checks correctness of `securityCode` corresponding to `transactionID`
@@ -13,11 +14,11 @@ type Checker interface {
 
 type security struct{}
 
-func (s *security) Check(_ int, securityCode int) bool {
+func (s *security) Check(transactionID int, securityCode int) bool {
 	fmt.Printf("Checking security code %d\n", securityCode)
 
 	//placeholder
-	if securityCode == securityCodeExampleValid {
+	if securityCode == securityCodeExampleValid && transactionID == transactionIDExample {
 		return true
 	}
 	return false

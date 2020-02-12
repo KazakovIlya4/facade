@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
+
 	"facade/pkg/facade"
 	"facade/pkg/security"
 	"facade/pkg/wallet"
-	"fmt"
 )
 
 const (

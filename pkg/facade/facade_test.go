@@ -2,11 +2,12 @@ package facade
 
 import (
 	"errors"
-	"facade/pkg/security"
-	"facade/pkg/wallet"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"facade/pkg/security"
+	"facade/pkg/wallet"
 )
 
 const (
