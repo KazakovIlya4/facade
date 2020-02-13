@@ -11,7 +11,7 @@ var (
 	errInvalidSecurityCode = fmt.Errorf("invalid securityChecker code")
 )
 
-type wallet interface {
+type wallet = interface {
 	Withdraw(amount uint32) (err error)
 	Balance() (balance int)
 }

@@ -16,25 +16,25 @@ func main() {
 	securityChecker := security.NewChecker()
 
 	paymentSystem := facade.NewPaymentSystem(wallets, securityChecker)
-	balance, err := paymentSystem.Balance("Alice", 1, 1)
+	balance, err := paymentSystem.Balance("AliceID", 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s balance %d ", "Alice", balance)
+	fmt.Printf("%s balance %d \n", "Alice", balance)
 
-	err = paymentSystem.Withdraw("Alice", 450, 1, 1)
+	err = paymentSystem.Withdraw("AliceID", 450, 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("Withdrew %d from  %s ", 450, "Alice")
+	fmt.Printf("Withdrew %d from %s \n", 450, "Alice")
 
-	balance, err = paymentSystem.Balance("Alice", 1, 1)
+	balance, err = paymentSystem.Balance("AliceID", 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s balance %d ", "Alice", balance)
+	fmt.Printf("%s balance %d\n", "Alice", balance)
 
 }

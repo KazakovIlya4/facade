@@ -9,7 +9,7 @@ var (
 )
 
 // Wallet allows to check balance and withdraw money
-type Wallet interface {
+type Wallet = interface {
 	Withdraw(amount uint32) (err error)
 	Balance() (balance int)
 }
