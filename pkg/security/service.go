@@ -1,27 +1,20 @@
 package security
 
-import "fmt"
-
-const (
-	securityCodeExampleValid int = 123
-	transactionIDExample     int = 1234
-)
+type validator interface {
+	Validate()
+}
 
 // Checker checks correctness of `securityCode` corresponding to `transactionID`
 type Checker interface {
-	Check(transactionID int, securityCode int) bool
+	Check(securityCode, transactionID int) bool
 }
 
 type security struct{}
 
-func (s *security) Check(transactionID int, securityCode int) bool {
-	fmt.Printf("Checking security code %d\n", securityCode)
-
-	//placeholder
-	if securityCode == securityCodeExampleValid && transactionID == transactionIDExample {
-		return true
-	}
-	return false
+// This function is a placeholder for an external call
+func (s *security) Check(_, _ int) (valid bool) {
+	valid = true
+	return
 }
 
 // NewChecker returns new instance of Checker implementation

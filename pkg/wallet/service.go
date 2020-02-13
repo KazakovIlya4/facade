@@ -1,44 +1,42 @@
 package wallet
 
-import "fmt"
-
-var (
-	insufficientFunds = fmt.Errorf("insufficient funds")
+import (
+	"fmt"
 )
 
-type wallet interface {
-	DeductMoney(amount uint32) error
-	GetBalance() int
-}
+var (
+	errInsufficientFunds = fmt.Errorf("insufficient funds")
+)
 
+// Wallet allows to check balance and withdraw money
 type Wallet interface {
-	DeductMoney(amount uint32) error
-	GetBalance() int
+	Withdraw(amount uint32) (err error)
+	Balance() (balance int)
 }
 
-type walletImplementation struct {
+type walletService struct {
 	name    string
 	balance int
 }
 
-// DeductMoney decreases amount of money in walletImplementation
-func (w *walletImplementation) DeductMoney(amount uint32) error {
-	fmt.Printf("Deducting %d from %s\n", amount, w.name)
+// Withdraw decreases amount of money in walletService
+func (w *walletService) Withdraw(amount uint32) (err error) {
 	if w.balance < int(amount) {
-		return fmt.Errorf("user %s money deduction: %w", w.name, insufficientFunds)
+		err = fmt.Errorf("user %s money deduction: %w", w.name, errInsufficientFunds)
+		return
 	}
 	w.balance = w.balance - int(amount)
-	return nil
+	return
 }
 
-func (w *walletImplementation) GetBalance() int {
-	fmt.Printf("Getting balance of %s\n", w.name)
-	return w.balance
+func (w *walletService) Balance() (balance int) {
+	balance = w.balance
+	return
 }
 
 // NewWallet returns new instance of Wallet implementation
 func NewWallet(name string, balance int) Wallet {
-	return &walletImplementation{
+	return &walletService{
 		name:    name,
 		balance: balance,
 	}

@@ -8,32 +8,33 @@ import (
 	"facade/pkg/wallet"
 )
 
-const (
-	securityCodeExampleValid int = 123
-	transactionIDExample     int = 1234
-)
-
 func main() {
-	paymentSystem := facade.NewPaymentSystem([]facade.AccountInfo{
-		facade.Account("Alice", wallet.NewWallet("Alice", 500)),
-	}, security.NewChecker())
-	balance, err := paymentSystem.GetBalance("Alice", securityCodeExampleValid, transactionIDExample)
+	wallets := make(map[string]wallet.Wallet)
+	wallets["AliceID"] = wallet.NewWallet("Alice", 500)
+	wallets["BobID"] = wallet.NewWallet("Bob", 5000)
+
+	securityChecker := security.NewChecker()
+
+	paymentSystem := facade.NewPaymentSystem(wallets, securityChecker)
+	balance, err := paymentSystem.Balance("Alice", 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s Balance is %d\n", "Alice", balance)
+	fmt.Printf("%s balance %d ", "Alice", balance)
 
-	err = paymentSystem.GetMoney("Alice", 450, securityCodeExampleValid, transactionIDExample)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	balance, err = paymentSystem.GetBalance("Alice", securityCodeExampleValid, transactionIDExample)
+	err = paymentSystem.Withdraw("Alice", 450, 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s Balance is %d\n", "Alice", balance)
+	fmt.Printf("Withdrew %d from  %s ", 450, "Alice")
+
+	balance, err = paymentSystem.Balance("Alice", 1, 1)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("%s balance %d ", "Alice", balance)
 
 }

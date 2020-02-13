@@ -2,38 +2,101 @@ package facade
 
 import (
 	"errors"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
-
-	"facade/pkg/security"
-	"facade/pkg/wallet"
+	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 const (
-	securityCodeExampleValid int = 123
-	transactionIDExample     int = 1234
+	checkerServiceMethodName               = "Check"
+	walletServiceMethodWithdrawName        = "Withdraw"
+	walletServiceMethodBalanceName         = "Balance"
+	withdrawAmount500Test           uint32 = 500
+	withdrawAmountTooMuchTest       uint32 = 2 * withdrawAmount500Test
+	testSecurityCodeValid           int    = 123
+	testSecurityCodeInvalid         int    = 321
+	testTransactionID               int    = 1234
 )
 
-func TestGetMoney(t *testing.T) {
-	paymentSystem := NewPaymentSystem([]AccountInfo{
-		Account("1", wallet.NewWallet("1", 500)),
-		Account("2", wallet.NewWallet("2", 50)),
-	}, security.NewChecker())
+func setupTests() (paymentSystem PaymentSystem) {
+	securityCheckerMock := &CheckerMock{
+		Mock: mock.Mock{},
+	}
+	securityCheckerMock.On(checkerServiceMethodName, testSecurityCodeValid, testTransactionID).
+		Return(true)
+	securityCheckerMock.On(checkerServiceMethodName, testSecurityCodeInvalid, testTransactionID).
+		Return(false)
 
-	err := paymentSystem.GetMoney("1", 450, securityCodeExampleValid, transactionIDExample)
+	serviceWalletMock := &WalletMock{
+		name:    "Alice",
+		balance: int(withdrawAmount500Test) + 100,
+		Mock:    mock.Mock{},
+	}
+	serviceWalletMock.On(walletServiceMethodWithdrawName, withdrawAmount500Test).
+		Return(nil)
+	serviceWalletMock.On(walletServiceMethodWithdrawName, withdrawAmountTooMuchTest).
+		Return(errInsufficientFunds)
+
+	paymentSystem = NewPaymentSystem(map[string]wallet{"Alice": serviceWalletMock},
+		securityCheckerMock)
+
+	return
+}
+
+type CheckerMock struct {
+	mock.Mock
+}
+
+func (c *CheckerMock) Check(securityCode, transactionID int) (valid bool) {
+	args := c.Called(securityCode, transactionID)
+	if a, ok := args.Get(0).(bool); ok {
+		valid = a
+	}
+	return
+}
+
+type WalletMock struct {
+	name    string
+	balance int
+	mock.Mock
+}
+
+func (w *WalletMock) Withdraw(amount uint32) (err error) {
+	args := w.Called(amount)
+	if a, ok := args.Get(0).(error); ok {
+		err = a
+	}
+	return
+}
+
+func (w *WalletMock) Balance() (balance int) {
+	args := w.Called()
+	if a, ok := args.Get(0).(int); ok {
+		balance = a
+	}
+	return
+}
+
+func Test_WithdrawSuccess(t *testing.T) {
+	paymentSystem := setupTests()
+	err := paymentSystem.Withdraw("Alice", withdrawAmount500Test, testSecurityCodeValid, testTransactionID)
 	assert.Equal(t, nil, err)
-	balance, err := paymentSystem.GetBalance("1", securityCodeExampleValid, transactionIDExample)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, 50, balance)
+}
 
-	err = paymentSystem.GetMoney("2", 450, 12, transactionIDExample)
-	assert.Equal(t, true, errors.As(err, &invalidSecurityCode))
+func Test_WithdrawNotFoundFail(t *testing.T) {
+	paymentSystem := setupTests()
+	err := paymentSystem.Withdraw("Bob", withdrawAmount500Test, testSecurityCodeValid, testTransactionID)
+	assert.Equal(t, true, errors.As(err, &errAccountNotFound))
+}
 
-	err = paymentSystem.GetMoney("2", 450, securityCodeExampleValid, transactionIDExample)
-	assert.Equal(t, true, errors.As(err, &insufficientFunds))
+func Test_WithdrawCheckFail(t *testing.T) {
+	paymentSystem := setupTests()
+	err := paymentSystem.Withdraw("Alice", withdrawAmount500Test, testSecurityCodeInvalid, testTransactionID)
+	assert.Equal(t, true, errors.As(err, &errInvalidSecurityCode))
+}
 
-	balance, err = paymentSystem.GetBalance("2", securityCodeExampleValid, transactionIDExample)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, 50, balance)
+func Test_WithdrawInsufficientFundsFail(t *testing.T) {
+	paymentSystem := setupTests()
+	err := paymentSystem.Withdraw("Alice", withdrawAmountTooMuchTest, testSecurityCodeValid, testTransactionID)
+	assert.Equal(t, true, errors.As(err, &errInsufficientFunds))
 }

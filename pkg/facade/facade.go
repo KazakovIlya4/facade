@@ -2,77 +2,81 @@ package facade
 
 import (
 	"fmt"
-
-	"facade/pkg/security"
-	"facade/pkg/wallet"
+	"sync"
 )
 
 var (
-	insufficientFunds   = fmt.Errorf("insufficient funds")
-	accountNotFound     = fmt.Errorf("account not found")
-	invalidSecurityCode = fmt.Errorf("invalid securityChecker code")
+	errInsufficientFunds   = fmt.Errorf("insufficient funds")
+	errAccountNotFound     = fmt.Errorf("account not found")
+	errInvalidSecurityCode = fmt.Errorf("invalid securityChecker code")
 )
 
+type wallet interface {
+	Withdraw(amount uint32) (err error)
+	Balance() (balance int)
+}
+
+type checker interface {
+	Check(securityCode, transactionID int) bool
+}
+
 // PaymentSystem represents money processor
-// GetMoney withdraws `amount` funds from `id` account if `securityCode` corresponding to `transactionID` is correct
-// GetBalance return balance  of `id` account if `securityCode` corresponding to `transactionID` is correct
+// Withdraw withdraws `amount` funds from `id` account if `securityCode` corresponding to `transactionID` is correct
+// Balance return balance  of `id` account if `securityCode` corresponding to `transactionID` is correct
 type PaymentSystem interface {
-	GetMoney(id string, amount uint32, securityCode int, transactionID int) error
-	GetBalance(id string, sercurityCode int, transactionID int) (int, error)
+	Withdraw(id string, amount uint32, securityCode int, transactionID int) (err error)
+	Balance(id string, securityCode int, transactionID int) (balance int, err error)
 }
 
-type AccountInfo struct {
-	ID     string
-	wallet wallet.Wallet
+type paymentSystemService struct {
+	RWLock          *sync.RWMutex
+	wallets         map[string]wallet
+	securityChecker checker
 }
 
-type paymentSystemImplementation struct {
-	wallets         map[string]wallet.Wallet
-	securityChecker security.Checker
-}
-
-func (p *paymentSystemImplementation) GetMoney(userID string, amount uint32, code int, transactionID int) error {
+func (p *paymentSystemService) Withdraw(userID string, amount uint32, securityCode int, transactionID int) (err error) {
+	p.RWLock.RLock()
+	defer p.RWLock.RUnlock()
 	w, ok := p.wallets[userID]
 	if ok != true {
-		return fmt.Errorf("get money %s: %w", userID, accountNotFound)
+		err = fmt.Errorf("get money %s: %w", userID, errAccountNotFound)
+		return
 	}
-	success := p.securityChecker.Check(transactionID, code)
+	success := p.securityChecker.Check(securityCode, transactionID)
 	if !success {
-		return fmt.Errorf("get money %d: %w", code, invalidSecurityCode)
+		err = fmt.Errorf("get money %d: %w", securityCode, errInvalidSecurityCode)
+		return
 	}
-	err := w.DeductMoney(amount)
+	err = w.Withdraw(amount)
 	if err != nil {
-		return fmt.Errorf("get money: %w", err)
+		err = fmt.Errorf("get money: %w", err)
 	}
-	return nil
+	return
 }
 
-func (p *paymentSystemImplementation) GetBalance(id string, code int, transactionID int) (int, error) {
+func (p *paymentSystemService) Balance(id string, code int, transactionID int) (balance int, err error) {
+	p.RWLock.RLock()
+	defer p.RWLock.RUnlock()
 	w, ok := p.wallets[id]
 	if !ok {
-		return 0, fmt.Errorf("get balance of %s: %w", id, accountNotFound)
+		err = fmt.Errorf("get balance of %s: %w", id, errAccountNotFound)
+		return
 	}
 	success := p.securityChecker.Check(transactionID, code)
 	if !success {
-		return 0, fmt.Errorf("get balance of %s: %w", id, invalidSecurityCode)
+		err = fmt.Errorf("get balance of %s: %w", id, errInvalidSecurityCode)
+		return
 	}
-	return w.GetBalance(), nil
+
+	balance = w.Balance()
+	return
 }
 
 // NewPaymentSystem creates PaymentSystem implementation with wallets provided by `accounts`
-func NewPaymentSystem(accounts []AccountInfo, checker security.Checker) PaymentSystem {
-	wallets := make(map[string]wallet.Wallet, len(accounts))
-	for _, v := range accounts {
-		wallets[v.ID] = v.wallet
-	}
-	return &paymentSystemImplementation{
+func NewPaymentSystem(wallets map[string]wallet, checker checker) PaymentSystem {
+	return &paymentSystemService{
+		RWLock:          &sync.RWMutex{},
 		wallets:         wallets,
 		securityChecker: checker,
 	}
-}
-
-func Account(id string, newWallet wallet.Wallet) (account AccountInfo) {
-	account.ID = id
-	account.wallet = newWallet
-	return
 }
