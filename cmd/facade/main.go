@@ -3,19 +3,28 @@ package main
 import (
 	"fmt"
 
+	"facade/pkg/account"
 	"facade/pkg/facade"
-	"facade/pkg/transaction"
-	"facade/pkg/wallet"
+	"facade/pkg/operation"
+)
+
+const (
+	withdrawCode = iota
+	balanceCode
 )
 
 func main() {
-	wallets := make(map[string]wallet.Wallet)
-	wallets["AliceID"] = wallet.NewWallet("Alice", 500)
-	wallets["BobID"] = wallet.NewWallet("Bob", 5000)
+	wallets := make(map[string]account.Wallet)
+	wallets["AliceID"] = account.NewWallet("Alice", 500)
+	wallets["BobID"] = account.NewWallet("Bob", 5000)
 
-	securityChecker := transaction.NewTransactionService()
+	transactionService := operation.NewService()
 
-	paymentSystem := facade.NewPaymentSystem(wallets, securityChecker)
+	operationCodes := make(map[string]int)
+	operationCodes["withdraw"] = withdrawCode
+	operationCodes["balance"] = balanceCode
+
+	paymentSystem := facade.NewPaymentSystem(wallets, transactionService, operationCodes)
 	balance, err := paymentSystem.Balance("AliceID")
 	if err != nil {
 		fmt.Println(err)

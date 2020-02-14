@@ -7,11 +7,6 @@ import (
 	"facade/pkg/models"
 )
 
-const (
-	withdrawalCodeTest = iota
-	balanceCodeTest
-)
-
 var (
 	errInsufficientFunds = fmt.Errorf("insufficient funds")
 	errAccountNotFound   = fmt.Errorf("account not found")
@@ -36,14 +31,15 @@ type PaymentSystem interface {
 }
 
 type paymentSystemService struct {
-	RWLock       *sync.RWMutex
-	wallets      map[string]wallet
-	transactions transactionSystem
+	sync.RWMutex
+	wallets        map[string]wallet
+	transactions   transactionSystem
+	operationCodes map[string]int
 }
 
 func (p *paymentSystemService) Withdraw(userID string, amount uint32) (err error) {
-	p.RWLock.RLock()
-	defer p.RWLock.RUnlock()
+	p.RLock()
+	defer p.RUnlock()
 	w, ok := p.wallets[userID]
 	if ok != true {
 		err = fmt.Errorf("get money %s: %w", userID, errAccountNotFound)
@@ -57,7 +53,7 @@ func (p *paymentSystemService) Withdraw(userID string, amount uint32) (err error
 		success = false
 	}
 
-	operationID := p.transactions.Save(userID, withdrawalCodeTest, int(amount), success)
+	operationID := p.transactions.Save(userID, p.operationCodes["withdraw"], int(amount), success)
 	if !success {
 		err = fmt.Errorf("operation id %d: %w", operationID, err)
 		return
@@ -67,8 +63,8 @@ func (p *paymentSystemService) Withdraw(userID string, amount uint32) (err error
 }
 
 func (p *paymentSystemService) Balance(userID string) (balance int, err error) {
-	p.RWLock.RLock()
-	defer p.RWLock.RUnlock()
+	p.RLock()
+	defer p.RUnlock()
 	w, ok := p.wallets[userID]
 	if !ok {
 		err = fmt.Errorf("get balance of %s: %w", userID, errAccountNotFound)
@@ -76,15 +72,15 @@ func (p *paymentSystemService) Balance(userID string) (balance int, err error) {
 	}
 
 	balance = w.Balance()
-	p.transactions.Save(userID, balanceCodeTest, balance, true)
+	p.transactions.Save(userID, p.operationCodes["balance"], balance, true)
 	return
 }
 
 // NewPaymentSystem creates PaymentSystem implementation with wallets provided by `accounts`
-func NewPaymentSystem(wallets map[string]wallet, transactions transactionSystem) PaymentSystem {
+func NewPaymentSystem(wallets map[string]wallet, transactions transactionSystem, codes map[string]int) PaymentSystem {
 	return &paymentSystemService{
-		RWLock:       &sync.RWMutex{},
-		wallets:      wallets,
-		transactions: transactions,
+		wallets:        wallets,
+		transactions:   transactions,
+		operationCodes: codes,
 	}
 }

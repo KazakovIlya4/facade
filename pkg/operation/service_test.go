@@ -1,10 +1,11 @@
-package transaction
+package operation
 
 import (
-	"facade/pkg/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"facade/pkg/models"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 
 func TestTransaction_Get(t *testing.T) {
 
-	transactions := NewTransactionService()
+	transactions := NewService()
 	transactions.Save("Alice", withdrawalCodeTest, 400, true)
 	rec := transactions.GetLast("Bob", 0)
 	assert.Equal(t, rec, []models.Record(nil))
@@ -24,7 +25,7 @@ func TestTransaction_Get(t *testing.T) {
 
 func TestTransaction_Save(t *testing.T) {
 
-	transactions := NewTransactionService()
+	transactions := NewService()
 	id := transactions.Save("Alice", balanceCodeTest, 400, true)
 	assert.Equal(t, 0, id)
 	rec := transactions.GetLast("Alice", 1)

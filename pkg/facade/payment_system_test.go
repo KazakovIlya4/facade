@@ -7,11 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"facade/pkg/transaction"
-	wallet_mock "facade/pkg/wallet"
+	wallet_mock "facade/pkg/account"
+	"facade/pkg/operation"
 )
 
 const (
+	withdrawalCode = iota
+	balanceCode
 	transactionServiceMethodName           = "Save"
 	walletServiceMethodWithdrawName        = "Withdraw"
 	walletServiceMethodBalanceName         = "Balance"
@@ -20,7 +22,7 @@ const (
 )
 
 func setupTests() (paymentSystem PaymentSystem) {
-	transactionServiceMock := &transaction.Mock{
+	transactionServiceMock := &operation.Mock{
 		Mock: mock.Mock{},
 	}
 	transactionServiceMock.On(transactionServiceMethodName, mock.AnythingOfType("string"),
@@ -31,7 +33,7 @@ func setupTests() (paymentSystem PaymentSystem) {
 		mock.AnythingOfType("int"), mock.AnythingOfType("int"), mock.AnythingOfType("bool")).
 		Return(0)
 
-	serviceWalletMock := &wallet_mock.WalletMock{
+	serviceWalletMock := &wallet_mock.Mock{
 		Mock: mock.Mock{},
 	}
 	serviceWalletMock.On(walletServiceMethodWithdrawName, withdrawAmount500Test).
@@ -40,7 +42,7 @@ func setupTests() (paymentSystem PaymentSystem) {
 		Return(errInsufficientFunds)
 
 	paymentSystem = NewPaymentSystem(map[string]wallet{"Alice": serviceWalletMock},
-		transactionServiceMock)
+		transactionServiceMock, map[string]int{"withdraw": withdrawalCode, "balance": balanceCode})
 
 	return
 }

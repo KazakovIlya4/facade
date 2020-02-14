@@ -1,6 +1,6 @@
 package models
 
-// Record keeps transaction info
+// Record keeps operation info
 type Record = struct {
 	ID            int
 	OperationCode int

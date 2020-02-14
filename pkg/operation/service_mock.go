@@ -1,4 +1,4 @@
-package transaction
+package operation
 
 import (
 	"github.com/stretchr/testify/mock"
@@ -6,7 +6,7 @@ import (
 	"facade/pkg/models"
 )
 
-// Mock of transaction service
+// Mock of operation service
 type Mock struct {
 	mock.Mock
 }

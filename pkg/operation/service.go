@@ -1,8 +1,9 @@
-package transaction
+package operation
 
 import (
-	"facade/pkg/models"
 	"sync"
+
+	"facade/pkg/models"
 )
 
 // Transaction saves operations info and retrieves them
@@ -11,14 +12,14 @@ type Transaction interface {
 	GetLast(userID string, limit int) (transactions []models.Record)
 }
 
-type transactionService struct {
-	RWLock       *sync.RWMutex
+type service struct {
+	sync.RWMutex
 	transactions []*models.Record
 }
 
-func (t *transactionService) Save(userID string, operation int, amount int, success bool) (id int) {
-	t.RWLock.Lock()
-	defer t.RWLock.Unlock()
+func (t *service) Save(userID string, operation int, amount int, success bool) (id int) {
+	t.Lock()
+	defer t.Unlock()
 	id = len(t.transactions)
 	t.transactions = append(t.transactions, &models.Record{
 		ID:            id,
@@ -30,9 +31,9 @@ func (t *transactionService) Save(userID string, operation int, amount int, succ
 	return
 }
 
-func (t *transactionService) GetLast(userID string, limit int) (transactions []models.Record) {
-	t.RWLock.RLock()
-	defer t.RWLock.RUnlock()
+func (t *service) GetLast(userID string, limit int) (transactions []models.Record) {
+	t.RLock()
+	defer t.RUnlock()
 
 	if limit < 0 {
 		return
@@ -50,10 +51,9 @@ func (t *transactionService) GetLast(userID string, limit int) (transactions []m
 	return
 }
 
-// NewTransactionService returns new instance of transactionService implementation
-func NewTransactionService() Transaction {
-	return &transactionService{
-		RWLock:       &sync.RWMutex{},
+// NewService returns new instance of service implementation
+func NewService() Transaction {
+	return &service{
 		transactions: make([]*models.Record, 0, 1024),
 	}
 }

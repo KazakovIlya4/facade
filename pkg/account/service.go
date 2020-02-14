@@ -1,4 +1,4 @@
-package wallet
+package account
 
 import (
 	"fmt"
@@ -14,13 +14,13 @@ type Wallet = interface {
 	Balance() (balance int)
 }
 
-type walletService struct {
+type service struct {
 	name    string
 	balance int
 }
 
-// Withdraw decreases amount of money in walletService
-func (w *walletService) Withdraw(amount uint32) (err error) {
+// Withdraw decreases amount of money in service
+func (w *service) Withdraw(amount uint32) (err error) {
 	if w.balance < int(amount) {
 		err = fmt.Errorf("user %s money deduction: %w", w.name, errInsufficientFunds)
 		return
@@ -29,14 +29,14 @@ func (w *walletService) Withdraw(amount uint32) (err error) {
 	return
 }
 
-func (w *walletService) Balance() (balance int) {
+func (w *service) Balance() (balance int) {
 	balance = w.balance
 	return
 }
 
 // NewWallet returns new instance of Wallet implementation
 func NewWallet(name string, balance int) Wallet {
-	return &walletService{
+	return &service{
 		name:    name,
 		balance: balance,
 	}

@@ -1,8 +1,8 @@
-package wallet
+package account
 
 import "github.com/stretchr/testify/mock"
 
-// Mock of wallet service
+// Mock of account service
 type Mock struct {
 	mock.Mock
 }
