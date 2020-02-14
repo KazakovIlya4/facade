@@ -55,28 +55,6 @@ func (c *CheckerMock) Check(securityCode, transactionID int) (valid bool) {
 	return
 }
 
-type WalletMock struct {
-	name    string
-	balance int
-	mock.Mock
-}
-
-func (w *WalletMock) Withdraw(amount uint32) (err error) {
-	args := w.Called(amount)
-	if a, ok := args.Get(0).(error); ok {
-		err = a
-	}
-	return
-}
-
-func (w *WalletMock) Balance() (balance int) {
-	args := w.Called()
-	if a, ok := args.Get(0).(int); ok {
-		balance = a
-	}
-	return
-}
-
 func Test_WithdrawSuccess(t *testing.T) {
 	paymentSystem := setupTests()
 	err := paymentSystem.Withdraw("Alice", withdrawAmount500Test, testSecurityCodeValid, testTransactionID)

@@ -34,7 +34,7 @@ type paymentSystemService struct {
 	securityChecker checker
 }
 
-func (p *paymentSystemService) Withdraw(userID string, amount uint32, securityCode int, transactionID int) (err error) {
+func (p *paymentSystemService) Withdraw(userID string, amount uint32, securityCode int, transactionID int) (id int, err error) {
 	p.RWLock.RLock()
 	defer p.RWLock.RUnlock()
 	w, ok := p.wallets[userID]

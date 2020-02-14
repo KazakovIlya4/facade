@@ -2,8 +2,9 @@ package wallet
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWallet_WithdrawSuccess(t *testing.T) {
