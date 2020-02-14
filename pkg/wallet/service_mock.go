@@ -2,20 +2,23 @@ package wallet
 
 import "github.com/stretchr/testify/mock"
 
-type WalletMock struct {
+// Mock of wallet service
+type Mock struct {
 	mock.Mock
 }
 
-func (w *WalletMock) Withdraw(amount uint32) (err error) {
-	args := w.Called(amount)
+// Withdraw ...
+func (m *Mock) Withdraw(amount uint32) (err error) {
+	args := m.Called(amount)
 	if a, ok := args.Get(0).(error); ok {
 		err = a
 	}
 	return
 }
 
-func (w *WalletMock) Balance() (balance int) {
-	args := w.Called()
+// Balance ...
+func (m *Mock) Balance() (balance int) {
+	args := m.Called()
 	if a, ok := args.Get(0).(int); ok {
 		balance = a
 	}

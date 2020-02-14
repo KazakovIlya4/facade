@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Transaction
+// Transaction saves operations info and retrieves them
 type Transaction interface {
 	Save(userID string, operation int, amount int, success bool) (id int)
 	GetLast(userID string, limit int) (transactions []models.Record)
