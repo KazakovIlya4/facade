@@ -8,18 +8,18 @@
    
 ```(go)
 type PaymentSystem interface {
-	GetMoney(id string, amount uint32, securityCode int, transactionID int) error
-	GetBalance(id string, sercurityCode int, transactionID int) (int, error)
+	Withdraw(id string, amount uint32) (err error)
+	Balance(id string) (balance int, err error)
 }
 ```
 
 ## Структура проекта
 1. `/pkg/wallet`: - кошелек, у которого есть имя пользователя и баланс.
 
-2.  `/pkg/security` - система подтверждения операции по защитному коду и id операции.
+2.  `/pkg/transaction` - система хранения операций.
 
 3.  `/pkg/facade` - сама платежная система.
 
 ## Запуск тестов
-`go test ./pkg/facade/`
+`go test ./...`
    

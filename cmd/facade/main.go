@@ -13,7 +13,7 @@ func main() {
 	wallets["AliceID"] = wallet.NewWallet("Alice", 500)
 	wallets["BobID"] = wallet.NewWallet("Bob", 5000)
 
-	securityChecker := transaction.NewChecker()
+	securityChecker := transaction.NewTransactionService()
 
 	paymentSystem := facade.NewPaymentSystem(wallets, securityChecker)
 	balance, err := paymentSystem.Balance("AliceID")

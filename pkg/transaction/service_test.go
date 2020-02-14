@@ -25,13 +25,13 @@ func TestTransaction_Get(t *testing.T) {
 func TestTransaction_Save(t *testing.T) {
 
 	transactions := NewTransactionService()
-	id := transactions.Save("Alice", withdrawalCodeTest, 400, true)
+	id := transactions.Save("Alice", balanceCodeTest, 400, true)
 	assert.Equal(t, 0, id)
 	rec := transactions.GetLast("Alice", 1)
 
 	assert.Equal(t, []models.Record{{
 		ID:            id,
-		OperationCode: withdrawalCodeTest,
+		OperationCode: balanceCodeTest,
 		UserID:        "Alice",
 		Amount:        400,
 		Success:       true,
@@ -51,7 +51,7 @@ func TestTransaction_Save(t *testing.T) {
 		},
 		{
 			ID:            0,
-			OperationCode: withdrawalCodeTest,
+			OperationCode: balanceCodeTest,
 			UserID:        "Alice",
 			Amount:        400,
 			Success:       true,

@@ -2,8 +2,8 @@ package models
 
 type Record = struct {
 	ID            int
-	OperationCode uint8
+	OperationCode int
 	UserID        string
-	Amount        uint32
+	Amount        int
 	Success       bool
 }

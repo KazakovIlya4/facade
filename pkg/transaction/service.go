@@ -7,7 +7,7 @@ import (
 
 // Transaction
 type Transaction interface {
-	Save(userID string, operation uint8, amount uint32, success bool) (id int)
+	Save(userID string, operation int, amount int, success bool) (id int)
 	GetLast(userID string, limit int) (transactions []models.Record)
 }
 
@@ -16,7 +16,7 @@ type transactionService struct {
 	transactions []*models.Record
 }
 
-func (t *transactionService) Save(userID string, operation uint8, amount uint32, success bool) (id int) {
+func (t *transactionService) Save(userID string, operation int, amount int, success bool) (id int) {
 	t.RWLock.Lock()
 	defer t.RWLock.Unlock()
 	id = len(t.transactions)
